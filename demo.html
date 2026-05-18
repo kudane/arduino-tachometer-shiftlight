@@ -266,7 +266,7 @@
           type="range"
           id="rpm-slider"
           min="0"
-          max="8500"
+          max="7000"
           value="0"
           step="50"
         />
@@ -321,7 +321,7 @@
       function updateDashboard(rpm) {
         // ป้องกันค่าหลุดกรอบ
         if (rpm < 0) rpm = 0;
-        if (rpm > 8500) rpm = 8500;
+        if (rpm > 6669) rpm = 6669;
 
         // อัปเดตตัวเลขดิจิทัล (เติมเลข 0 ข้างหน้าให้ครบ 4 หลัก)
         rpmText.innerText = Math.floor(rpm).toString().padStart(4, '0');
@@ -335,7 +335,7 @@
         if (!isSystemReady) return;
 
         // ตรวจสอบ Redline (เกิน 7500 RPM) -> กระพริบทั้งหมด
-        if (rpm >= 7500) {
+        if (rpm >= 6669) {
           leds.forEach((led) => {
             // ล้างคลาสเก่าออกทั้งหมดแล้วใส่ flash-red
             led.className = 'led flash-red';
@@ -357,7 +357,7 @@
 
           // ถ้า RPM ถึงเกณฑ์ของหลอดนั้นๆ ให้เปิดไฟตามสีที่กำหนด
           if (rpm >= rpmThresholds[index]) {
-            // ป้องกันไม่ให้หลอดที่ 8 แสดงผลถ้า RPM ยังไม่ถึง 7500 (กันบัค)
+            // ป้องกันไม่ให้หลอดที่ 8 แสดงผลถ้า RPM ยังไม่ถึง 6669 (กันบัค)
             if (ledColors[index] !== 'flash') {
               led.classList.add(ledColors[index]);
             }
@@ -413,11 +413,11 @@
         if (!isAutoRevving) return;
 
         // ใช้สมการ Sine Wave สร้างจังหวะขึ้นลงสมูทๆ คล้ายการเบิ้ลเครื่อง
-        // รอบจะสวิงอยู่ระหว่าง ~800 ถึง ~8200
+        // รอบจะสวิงอยู่ระหว่าง ~800 ถึง ~6669
         revPhase += 0.035; // ความเร็วในการกวาดรอบ
 
         // คำนวณจำลอง RPM (ฐาน 4500 สวิงขึ้นลง 3700)
-        let simulatedRPM = 4500 + 3700 * Math.sin(revPhase);
+        let simulatedRPM = 4000 + 3000 * Math.sin(revPhase);
 
         // จำกัดให้อยู่ในกรอบ
         if (simulatedRPM < 800) simulatedRPM = 800;
