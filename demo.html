@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Racing Dashboard - Shift Light</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* =========================================
+           CSS: ตั้งค่าธีมและสไตล์โดยรวม (Racing Dashboard)
+           ========================================= */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: #0d0d0d;
+        background-image: radial-gradient(
+          circle at center,
+          #1a1a1a 0%,
+          #000000 100%
+        );
+        color: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      /* กล่อง Dashboard หลัก */
+      .dashboard {
+        background: linear-gradient(145deg, #1f1f1f, #151515);
+        border: 2px solid #333;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8),
+          inset 0 2px 1px rgba(255, 255, 255, 0.05);
+        text-align: center;
+        width: 90%;
+        max-width: 600px;
+      }
+
+      /* หน้าจอแสดงผล RPM (Digital Display) */
+      .rpm-display-container {
+        background: #050505;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 30px;
+        border: 1px solid #222;
+        box-shadow: inset 0 5px 15px rgba(0, 0, 0, 1);
+      }
+
+      .rpm-text {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #e0e0e0;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        letter-spacing: 2px;
+      }
+
+      .rpm-label {
+        font-size: 1rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        margin-top: 5px;
+      }
+
+      /* =========================================
+           CSS: แผงไฟ Shift Light (LEDs)
+           ========================================= */
+      .shift-light-panel {
+        background: #080808;
+        padding: 15px 25px;
+        border-radius: 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #1a1a1a;
+        box-shadow: inset 0 8px 15px rgba(0, 0, 0, 0.9),
+          0 5px 15px rgba(0, 0, 0, 0.5);
+        margin-bottom: 40px;
+      }
+
+      .led {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: #121212; /* สีหลอดไฟตอนดับ (ดูเหมือนหลอดมืดๆ) */
+        border: 2px solid #000;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8); /* มิติหลอดไฟ */
+        transition: background-color 0.05s ease, box-shadow 0.05s ease;
+        position: relative;
+      }
+
+      /* แสงสะท้อนบนกระจกหลอดไฟ LED เล็กน้อย */
+      .led::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 5px;
+        width: 8px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: rotate(-45deg);
+      }
+
+      /* สถานะสีต่างๆ ของ LED พร้อม Glow Effect */
+      .led.green {
+        background-color: #00ff00;
+        box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00,
+          inset 0 0 10px rgba(255, 255, 255, 0.8);
+        border-color: #004400;
+      }
+
+      .led.yellow {
+        background-color: #ffdd00;
+        box-shadow: 0 0 15px #ffdd00, 0 0 30px #ffdd00,
+          inset 0 0 10px rgba(255, 255, 255, 0.8);
+        border-color: #554400;
+      }
+
+      .led.red {
+        background-color: #ff0000;
+        box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000,
+          inset 0 0 10px rgba(255, 255, 255, 0.8);
+        border-color: #440000;
+      }
+
+      /* อนิเมชั่นกระพริบเมื่อถึง Redline */
+      .led.flash-red {
+        animation: redline-flash 0.08s infinite alternate;
+      }
+
+      @keyframes redline-flash {
+        0% {
+          background-color: #ff0000;
+          box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000,
+            inset 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        100% {
+          background-color: #121212;
+          box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+        }
+      }
+
+      /* =========================================
+           CSS: ส่วนควบคุม (Controls)
+           ========================================= */
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* Custom Range Slider */
+      input[type='range'] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 8px;
+        background: #2a2a2a;
+        border-radius: 5px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #666;
+        border: 2px solid #aaa;
+        cursor: pointer;
+        transition: background 0.1s;
+      }
+
+      input[type='range']::-webkit-slider-thumb:hover {
+        background: #fff;
+      }
+
+      input[type='range']:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-auto-rev {
+        background: linear-gradient(145deg, #e63946, #b01c26);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.4);
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .btn-auto-rev:hover {
+        background: linear-gradient(145deg, #ff4d5a, #c4202a);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(230, 57, 70, 0.6);
+      }
+
+      .btn-auto-rev.active {
+        background: linear-gradient(145deg, #2a9d8f, #1e7a6f);
+        box-shadow: 0 5px 15px rgba(42, 157, 143, 0.4);
+      }
+
+      /* Responsive สำหรับมือถือ */
+      @media (max-width: 480px) {
+        .dashboard {
+          padding: 20px;
+        }
+        .rpm-text {
+          font-size: 2.5rem;
+        }
+        .led {
+          width: 20px;
+          height: 20px;
+        }
+        .shift-light-panel {
+          padding: 10px 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="rpm-display-container">
+        <div class="rpm-text" id="rpm-text">0000</div>
+        <div class="rpm-label">Engine RPM</div>
+      </div>
+
+      <div class="shift-light-panel">
+        <div class="led" id="led-1"></div>
+        <div class="led" id="led-2"></div>
+        <div class="led" id="led-3"></div>
+        <div class="led" id="led-4"></div>
+        <div class="led" id="led-5"></div>
+        <div class="led" id="led-6"></div>
+        <div class="led" id="led-7"></div>
+        <div class="led" id="led-8"></div>
+      </div>
+
+      <div class="controls">
+        <label for="rpm-slider" style="color: #888; font-size: 0.9rem"
+          >Throttle Simulator</label
+        >
+        <input
+          type="range"
+          id="rpm-slider"
+          min="0"
+          max="8500"
+          value="0"
+          step="50"
+        />
+        <button class="btn-auto-rev" id="btn-auto-rev">
+          Auto Rev (Dyno Pull)
+        </button>
+      </div>
+    </div>
+
+    <script>
+      /* =========================================
+           JavaScript: ลอจิกการทำงานและแอนิเมชัน
+           ========================================= */
+
+      // 1. ดึง Elements จาก HTML มาใช้งาน
+      const rpmText = document.getElementById('rpm-text');
+      const rpmSlider = document.getElementById('rpm-slider');
+      const btnAutoRev = document.getElementById('btn-auto-rev');
+      const leds = [
+        document.getElementById('led-1'),
+        document.getElementById('led-2'),
+        document.getElementById('led-3'),
+        document.getElementById('led-4'),
+        document.getElementById('led-5'),
+        document.getElementById('led-6'),
+        document.getElementById('led-7'),
+        document.getElementById('led-8'),
+      ];
+
+      // 2. ตั้งค่าช่วง RPM สำหรับไฟแต่ละดวง (ตามที่ User กำหนด + กระจายให้เต็ม 8 ดวง)
+      // LED 1-3: เขียว (1000 - 3000)
+      // LED 4-5: เหลือง (4000 - 5000)
+      // LED 6-7: แดง (6000 - 7000)
+      // LED 8: แดงกระพริบเตือน (7500+)
+      const rpmThresholds = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 7500];
+      const ledColors = [
+        'green',
+        'green',
+        'green',
+        'yellow',
+        'yellow',
+        'red',
+        'red',
+        'flash',
+      ];
+
+      let currentRPM = 0;
+      let isAutoRevving = false;
+      let isSystemReady = false; // ป้องกันการปรับค่าช่วง Startup
+
+      // 3. ฟังก์ชันอัปเดตหน้าจอและไฟ LED หลัก
+      function updateDashboard(rpm) {
+        // ป้องกันค่าหลุดกรอบ
+        if (rpm < 0) rpm = 0;
+        if (rpm > 8500) rpm = 8500;
+
+        // อัปเดตตัวเลขดิจิทัล (เติมเลข 0 ข้างหน้าให้ครบ 4 หลัก)
+        rpmText.innerText = Math.floor(rpm).toString().padStart(4, '0');
+
+        // อัปเดตสไลเดอร์ให้ขยับตาม (สำคัญเวลาใช้โหมด Auto Rev)
+        if (rpmSlider.value != rpm) {
+          rpmSlider.value = rpm;
+        }
+
+        // ถ้าเครื่องยังอยู่ในช่วง Startup ห้ามไฟเปลี่ยนตามสไลเดอร์
+        if (!isSystemReady) return;
+
+        // ตรวจสอบ Redline (เกิน 7500 RPM) -> กระพริบทั้งหมด
+        if (rpm >= 7500) {
+          leds.forEach((led) => {
+            // ล้างคลาสเก่าออกทั้งหมดแล้วใส่ flash-red
+            led.className = 'led flash-red';
+          });
+          // ให้ตัวเลขเป็นสีแดงเตือนด้วย
+          rpmText.style.color = '#ff0000';
+          rpmText.style.textShadow = '0 0 15px #ff0000';
+          return;
+        } else {
+          // สีตัวเลขปกติ
+          rpmText.style.color = '#e0e0e0';
+          rpmText.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.3)';
+        }
+
+        // การทำงานโหมดปกติ (ไล่ไฟจากซ้ายไปขวา)
+        leds.forEach((led, index) => {
+          // ล้างสถานะไฟ (ดับไฟ)
+          led.className = 'led';
+
+          // ถ้า RPM ถึงเกณฑ์ของหลอดนั้นๆ ให้เปิดไฟตามสีที่กำหนด
+          if (rpm >= rpmThresholds[index]) {
+            // ป้องกันไม่ให้หลอดที่ 8 แสดงผลถ้า RPM ยังไม่ถึง 7500 (กันบัค)
+            if (ledColors[index] !== 'flash') {
+              led.classList.add(ledColors[index]);
+            }
+          }
+        });
+      }
+
+      // 4. ฟังชันจำลอง Startup Sequence ตอนโหลดหน้าเว็บ (ไฟวิ่งเช็คระบบ)
+      function runStartupSequence() {
+        let delay = 0;
+
+        // วิ่งทีละดวงจากซ้ายไปขวา
+        leds.forEach((led, index) => {
+          setTimeout(() => {
+            led.classList.add(
+              ledColors[index] !== 'flash' ? ledColors[index] : 'red'
+            );
+          }, delay);
+          delay += 80; // ความเร็วไฟวิ่ง
+        });
+
+        // ดับไฟทั้งหมด
+        setTimeout(() => {
+          leds.forEach((led) => (led.className = 'led'));
+        }, delay + 300);
+
+        // กระพริบทุกดวงพร้อมกัน 2 ครั้งเพื่อจบการเช็คระบบ
+        setTimeout(() => {
+          leds.forEach((led) => led.classList.add('green'));
+        }, delay + 500);
+
+        setTimeout(() => {
+          leds.forEach((led) => (led.className = 'led'));
+        }, delay + 600);
+
+        setTimeout(() => {
+          leds.forEach((led) => led.classList.add('green'));
+        }, delay + 700);
+
+        // พร้อมใช้งาน
+        setTimeout(() => {
+          leds.forEach((led) => (led.className = 'led'));
+          isSystemReady = true; // อนุญาตให้รับค่า Input ได้
+          updateDashboard(rpmSlider.value); // อัปเดตตามค่า Slider ปัจจุบัน
+        }, delay + 800);
+      }
+
+      // 5. ลอจิก Auto Rev (จำลองการเบิ้ลเครื่อง/ลากรอบ)
+      let revPhase = 0;
+      let reqAnimFrame;
+
+      function autoRevLoop() {
+        if (!isAutoRevving) return;
+
+        // ใช้สมการ Sine Wave สร้างจังหวะขึ้นลงสมูทๆ คล้ายการเบิ้ลเครื่อง
+        // รอบจะสวิงอยู่ระหว่าง ~800 ถึง ~8200
+        revPhase += 0.035; // ความเร็วในการกวาดรอบ
+
+        // คำนวณจำลอง RPM (ฐาน 4500 สวิงขึ้นลง 3700)
+        let simulatedRPM = 4500 + 3700 * Math.sin(revPhase);
+
+        // จำกัดให้อยู่ในกรอบ
+        if (simulatedRPM < 800) simulatedRPM = 800;
+
+        updateDashboard(simulatedRPM);
+        reqAnimFrame = requestAnimationFrame(autoRevLoop);
+      }
+
+      // 6. Event Listeners คอยจับการกระทำของ User
+
+      // เมื่อเลื่อน Slider
+      rpmSlider.addEventListener('input', (e) => {
+        // ถ้ากำลัง Auto Rev อยู่ ให้ยกเลิก Auto Rev ทันทีเมื่อผู้ใช้เข้ามาจับ Slider
+        if (isAutoRevving) {
+          isAutoRevving = false;
+          cancelAnimationFrame(reqAnimFrame);
+          btnAutoRev.innerText = 'Auto Rev (Dyno Pull)';
+          btnAutoRev.classList.remove('active');
+        }
+        updateDashboard(e.target.value);
+      });
+
+      // เมื่อกดปุ่ม Auto Rev
+      btnAutoRev.addEventListener('click', () => {
+        isAutoRevving = !isAutoRevving;
+
+        if (isAutoRevving) {
+          btnAutoRev.innerText = 'Stop Revving';
+          btnAutoRev.classList.add('active');
+          rpmSlider.disabled = true; // ล็อค slider ตอนออโต้รัน
+
+          // รีเซ็ต Phase ให้เริ่มจากจุดต่ำสุดเสมอ (Sine -PI/2 คือค่า -1)
+          revPhase = -Math.PI / 2;
+          autoRevLoop();
+        } else {
+          btnAutoRev.innerText = 'Auto Rev (Dyno Pull)';
+          btnAutoRev.classList.remove('active');
+          rpmSlider.disabled = false;
+          cancelAnimationFrame(reqAnimFrame);
+
+          // ค่อยๆ ลดรอบลงมาที่ 0 (Idle Drop Simulation)
+          updateDashboard(0);
+        }
+      });
+
+      // 7. สั่งให้เริ่มทำงานทันทีที่โหลดหน้าเว็บเสร็จ
+      window.onload = runStartupSequence;
+    </script>
+  </body>
+</html>
