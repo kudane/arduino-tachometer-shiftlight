@@ -33,18 +33,18 @@
 #define RPM_DEBOUNCE_US       2000
 
 // --- ตั้งค่าสำหรับกรองสัญญาณ ---
-#define MAX_RPM_JUMP          500    // (ใหม่) ป้องกันรอบกระโดดเกิน 1000 RPM ภายใน 30ms
+#define MAX_RPM_JUMP          1000    // (ใหม่) ป้องกันรอบกระโดดเกิน 1000 RPM ภายใน 30ms
 const float SMOOTHING_FACTOR = 0.2;
 
 const int rpmSteps[NUM_LEDS] = {
-  1100,  // LED 1 → เขียว
-  1600,  // LED 2 → เขียว
-  2200,  // LED 3 → เขียว
-  2700,  // LED 4 → เหลือง
-  3400,  // LED 4 → ส้มเหลือง
-  4100,  // LED 5 → ส้ม
-  5500,  // LED 6 → แดง
-  6670   // LED 7 → แดง (Redline)
+  1000,  // LED 1 → เขียว
+  1500,  // LED 2 → เขียว
+  2000,  // LED 3 → เขียว
+  2500,  // LED 4 → เหลือง
+  3000,  // LED 4 → ส้มเหลือง
+  3500,  // LED 5 → ส้ม
+  4000,  // LED 6 → แดง
+  5000   // LED 7 → แดง (Redline)
 };
 
 const uint8_t ledColors[NUM_LEDS][3] = {
