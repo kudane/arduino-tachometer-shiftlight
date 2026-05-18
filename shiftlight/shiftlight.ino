@@ -24,12 +24,12 @@
 constexpr uint8_t  DATA_PIN        = 3;
 constexpr uint8_t  PULSE_PIN       = 2;
 constexpr uint8_t  NUM_LEDS        = 8;
-constexpr uint8_t  LED_BRIGHTNESS  = 50;
+constexpr uint8_t  LED_BRIGHTNESS  = 10;
 
 // ── RPM Signal ────────────────────────────────────────────
 constexpr uint8_t  PULSES_PER_REV  = 2;
-constexpr uint32_t RPM_TIMEOUT_US  = 1'000'000UL;  // engine stopped if no pulse > 1 s
-constexpr uint32_t DEBOUNCE_US     = 2'000UL;       // ignore pulses closer than 2 ms
+constexpr uint32_t RPM_TIMEOUT_US  = 1000000UL;  // engine stopped if no pulse > 1 s
+constexpr uint32_t DEBOUNCE_US     = 2000UL;      // ignore pulses closer than 2 ms
 
 // ── Display Thresholds ────────────────────────────────────
 constexpr uint16_t SHIFT_RPM       = 4500;
@@ -89,7 +89,7 @@ static DisplayState display;
 // ============================================================
 //  ISR  (keep as short as possible)
 // ============================================================
-void IRAM_ATTR pulseISR() {
+void pulseISR() {
     const uint32_t now      = micros();
     const uint32_t interval = now - rpmSignal.lastPulseUs;
 
@@ -119,7 +119,7 @@ static uint16_t readRawRpm() {
     }
 
     // RPM = (60 s × 10^6 µs) / interval_µs / pulses_per_rev
-    return static_cast<uint16_t>((60'000'000UL / interval) / PULSES_PER_REV);
+    return static_cast<uint16_t>((60000000UL / interval) / PULSES_PER_REV);
 }
 
 /* Apply spike rejection then EMA smoothing. Returns display RPM. */
